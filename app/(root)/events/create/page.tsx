@@ -1,10 +1,13 @@
-import EventForm from "@/components/shared/EventForm"
+import EventForm from "@/components/shared/EventForm";
 import { auth } from "@clerk/nextjs";
 
 const CreateEvent = () => {
   const { sessionClaims } = auth();
 
-  const userId = sessionClaims?.userId as string;
+  console.log('Session Claims:', sessionClaims); // Debugging
+
+  // Extract userId from sessionClaims
+  const userId = sessionClaims?.sub as string; // or sessionClaims?.userId
 
   return (
     <>
@@ -16,7 +19,7 @@ const CreateEvent = () => {
         <EventForm userId={userId} type="Create" />
       </div>
     </>
-  )
-}
+  );
+};
 
-export default CreateEvent
+export default (CreateEvent); // Protect the route
