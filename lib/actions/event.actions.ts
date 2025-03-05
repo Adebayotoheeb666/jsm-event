@@ -1,5 +1,8 @@
 'use server'
 
+import { Types } from "mongoose";
+
+
 import { revalidatePath } from 'next/cache'
 
 import { connectToDatabase } from '@/lib/database'
@@ -29,6 +32,11 @@ const populateEvent = (query: any) => {
 
 // CREATE
 export async function createEvent({ userId, event, path }: CreateEventParams) {
+
+  // Convert userId to ObjectId if it's a string
+  const objectId = typeof userId === "string" ? new Types.ObjectId(userId) : userId;
+
+
   try {
     await connectToDatabase();
 

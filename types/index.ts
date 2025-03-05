@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 // ====== USER PARAMS
 export type CreateUserParams = {
   clerkId: string
@@ -17,7 +18,7 @@ export type UpdateUserParams = {
 
 // ====== EVENT PARAMS
 export type CreateEventParams = {
-  userId: string
+  userId: string | Types.ObjectId;
   event: {
     title: string
     description: string
@@ -34,7 +35,7 @@ export type CreateEventParams = {
 }
 
 export type UpdateEventParams = {
-  userId: string
+  userId: string | Types.ObjectId; // Allow both string and ObjectId
   event: {
     _id: string
     title: string
