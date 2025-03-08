@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 
 import { IEvent } from '@/lib/database/models/event.model';
@@ -7,7 +7,7 @@ import { checkoutOrder } from '@/lib/actions/order.actions';
 
 loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-const Checkout = ({ event, userId }: { event: IEvent, userId: string }) => {
+const Checkout = ({ event, sub }: { event: IEvent, sub: string }) => {
   useEffect(() => {
     // Check to see if this is a redirect back from Checkout
     const query = new URLSearchParams(window.location.search);
@@ -26,11 +26,11 @@ const Checkout = ({ event, userId }: { event: IEvent, userId: string }) => {
       eventId: event._id,
       price: event.price,
       isFree: event.isFree,
-      buyerId: userId
-    }
+      buyerId: sub // Use 'sub' instead of 'userId'
+    };
 
     await checkoutOrder(order);
-  }
+  };
 
   return (
     <form action={onCheckout} method="post">
@@ -38,7 +38,7 @@ const Checkout = ({ event, userId }: { event: IEvent, userId: string }) => {
         {event.isFree ? 'Get Ticket' : 'Buy Ticket'}
       </Button>
     </form>
-  )
-}
+  );
+};
 
-export default Checkout
+export default Checkout;

@@ -18,39 +18,39 @@ export type UpdateUserParams = {
 
 // ====== EVENT PARAMS
 export type CreateEventParams = {
-  userId: string | Types.ObjectId;
+  sub: string; // Replaced userId with sub
   event: {
-    title: string
-    description: string
-    location: string
-    imageUrl: string
-    startDateTime: Date
-    endDateTime: Date
-    categoryId: string
-    price: string
-    isFree: boolean
-    url: string
-  }
-  path: string
-}
+    title: string;
+    description: string;
+    location: string;
+    imageUrl: string;
+    startDateTime: Date;
+    endDateTime: Date;
+    categoryId: string;
+    price: string;
+    isFree: boolean;
+    url: string;
+  };
+  path: string;
+};
 
 export type UpdateEventParams = {
-  userId: string | Types.ObjectId; // Allow both string and ObjectId
+  sub: string; // Replaced userId with sub
   event: {
-    _id: string
-    title: string
-    imageUrl: string
-    description: string
-    location: string
-    startDateTime: Date
-    endDateTime: Date
-    categoryId: string
-    price: string
-    isFree: boolean
-    url: string
-  }
-  path: string
-}
+    _id: string;
+    title: string;
+    description: string;
+    location: string;
+    imageUrl: string;
+    startDateTime: Date;
+    endDateTime: Date;
+    categoryId: string;
+    price: string;
+    isFree: boolean;
+    url: string;
+  };
+  path: string;
+};
 
 export type DeleteEventParams = {
   eventId: string
@@ -65,10 +65,10 @@ export type GetAllEventsParams = {
 }
 
 export type GetEventsByUserParams = {
-  userId: string
-  limit?: number
-  page: number
-}
+  sub: string; // Replaced userId with sub
+  limit?: number;
+  page: number;
+};
 
 export type GetRelatedEventsByCategoryParams = {
   categoryId: string
@@ -127,10 +127,10 @@ export type GetOrdersByEventParams = {
 }
 
 export type GetOrdersByUserParams = {
-  userId: string | null
-  limit?: number
-  page: string | number | null
-}
+  sub: string; // Replaced userId with sub
+  limit?: number;
+  page: number;
+};
 
 // ====== URL QUERY PARAMS
 export type UrlQueryParams = {
