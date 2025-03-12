@@ -8,11 +8,7 @@ export interface IOrder extends Document {
     _id: string
     title: string
   }
-  buyer: {
-    _id: string
-    firstName: string
-    lastName: string
-  }
+  buyer: string; // Change to string to store Clerk user ID
 }
 
 export type IOrderItem = {
@@ -42,8 +38,8 @@ const OrderSchema = new Schema({
     ref: 'Event',
   },
   buyer: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
+    type: String, // Change to string to store Clerk user ID
+    required: true,
   },
 })
 

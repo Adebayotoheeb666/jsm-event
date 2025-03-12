@@ -51,7 +51,7 @@ export const createOrder = async (order: CreateOrderParams) => {
     const newOrder = await Order.create({
       ...order,
       event: order.eventId,
-      buyer: order.buyerId, // This remains buyerId as it's used in the database
+      buyer: order.buyerId, // Use the Clerk user ID (clerkId) directly
     });
 
     return JSON.parse(JSON.stringify(newOrder));
@@ -72,8 +72,8 @@ export async function getOrdersByEvent({ searchString, eventId }: GetOrdersByEve
       {
         $lookup: {
           from: 'users',
-          localField: 'buyer',
-          foreignField: '_id',
+          localField: 'buyer', // Use the Clerk user ID (clerkId) directly
+          foreignField: 'clerkId', // Match with the Clerk user ID in the User model
           as: 'buyer',
         },
       },
@@ -122,10 +122,9 @@ export async function getOrdersByUser({ sub, limit = 3, page }: GetOrdersByUserP
     await connectToDatabase();
 
     const skipAmount = (Number(page) - 1) * limit;
-    const conditions = { buyer: sub }; // Use sub instead of userId
+    const conditions = { buyer: sub }; // Use the Clerk user ID (clerkId) directly
 
-    const orders = await Order.distinct('event._id')
-      .find(conditions)
+    const orders = await Order.find(conditions)
       .sort({ createdAt: 'desc' })
       .skip(skipAmount)
       .limit(limit)
@@ -139,7 +138,7 @@ export async function getOrdersByUser({ sub, limit = 3, page }: GetOrdersByUserP
         },
       });
 
-    const ordersCount = await Order.distinct('event._id').countDocuments(conditions);
+    const ordersCount = await Order.countDocuments(conditions);
 
     return { data: JSON.parse(JSON.stringify(orders)), totalPages: Math.ceil(ordersCount / limit) };
   } catch (error) {
