@@ -6,6 +6,7 @@ import Event from '@/lib/database/models/event.model';
 import User from '@/lib/database/models/user.model';
 import Category from '@/lib/database/models/category.model';
 import { handleError } from '@/lib/utils';
+import { auth } from "@clerk/nextjs";
 
 import {
   CreateEventParams,
@@ -15,6 +16,20 @@ import {
   GetEventsByUserParams,
   GetRelatedEventsByCategoryParams,
 } from '@/types';
+
+export async function syncUserWithDatabase() {
+  const { userId } = auth();
+  if (!userId) return;
+
+  const user = await User.findOne({ clerkId: userId });
+  if (!user) {
+    // Create a new user in the database
+    await User.create({ clerkId: userId, firstName: "New", lastName: "User" });
+  }
+}
+
+
+
 
 const getCategoryByName = async (name: string) => {
   return Category.findOne({ name: { $regex: name, $options: 'i' } });
@@ -41,7 +56,11 @@ export async function createEvent({ sub, event, path }: CreateEventParams) {
 
     // Check if the organizer exists
     const organizer = await User.findOne({ clerkId: sub });
-    if (!organizer) throw new Error('Organizer not found');
+  if (!organizer) {
+    console.error("Organizer not found in the database");
+    alert("Organizer not found. Please contact support.");
+    return;
+  }
 
     // Check if the category exists
     const categoryExists = await Category.findById(event.categoryId);
