@@ -1,11 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { connectToDatabase } from '@/lib/database';
-import Event from '@/lib/database/models/event.model';
-import User from '@/lib/database/models/user.model';
-import Category from '@/lib/database/models/category.model';
-import { handleError } from '@/lib/utils';
+import { connectToDatabase } from '../database'; // Adjusted path
+import Event from '../database/models/event.model'; // Adjusted path
+import User from '../database/models/user.model'; // Adjusted path
+import Category from '../database/models/category.model'; // Adjusted path
+import { handleError } from '../utils'; // Adjusted path
 import { auth } from "@clerk/nextjs";
 
 import {
@@ -15,7 +15,7 @@ import {
   GetAllEventsParams,
   GetEventsByUserParams,
   GetRelatedEventsByCategoryParams,
-} from '@/types';
+} from '@/types'; // Adjusted path
 
 export async function syncUserWithDatabase() {
   const { userId } = auth();
@@ -27,9 +27,6 @@ export async function syncUserWithDatabase() {
     await User.create({ clerkId: userId, firstName: "New", lastName: "User" });
   }
 }
-
-
-
 
 const getCategoryByName = async (name: string) => {
   return Category.findOne({ name: { $regex: name, $options: 'i' } });
@@ -46,39 +43,26 @@ const populateEvent = async (query: any) => {
 };
 
 // CREATE
-export async function createEvent({ sub, event, path }: CreateEventParams) {
+export const createEvent = async ({ event, sub, path }: { event: any; sub: string; path: string }) => {
   try {
     await connectToDatabase();
 
-    console.log('Sub:', sub);
-    console.log('Event Data:', event);
-    console.log('Path:', path);
+    // Find the user by their ID (sub)
+    const organizer = await User.findById(sub);
 
     // Check if the organizer exists
-    const organizer = await User.findOne({ clerkId: sub });
-  if (!organizer) {
-    console.error("Organizer not found in the database");
-    alert("Organizer not found. Please contact support.");
-    return;
-  }
-
-    // Check if the category exists
-    const categoryExists = await Category.findById(event.categoryId);
-    if (!categoryExists) throw new Error('Category not found');
+    if (!organizer) {
+      throw new Error("Organizer not found. Please contact support.");
+    }
 
     // Create the event
-    const newEvent = await Event.create({
-      ...event,
-      category: event.categoryId,
-      organizer: sub, // Use sub (Clerk's unique identifier) as-is
-    });
+    const newEvent = await Event.create({ ...event, organizer: sub });
 
-    // Revalidate the path
-    revalidatePath(path);
+    // Update the user's events list
+    await User.findByIdAndUpdate(sub, { $push: { events: newEvent._id } });
 
     return JSON.parse(JSON.stringify(newEvent));
   } catch (error) {
-    console.error('Error in createEvent:', error);
     handleError(error);
   }
 }

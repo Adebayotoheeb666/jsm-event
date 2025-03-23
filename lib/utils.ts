@@ -86,15 +86,18 @@ export function removeKeysFromQuery({ params, keysToRemove }: RemoveUrlQueryPara
     { skipNull: true }
   )
 }
-export const handleError = (error: unknown) => {
+export const handleError = (error: unknown, alertCallback?: (message: string) => void): void => {
   if (error instanceof Error) {
     console.error('Error:', error.message);
+    if (alertCallback) alertCallback(error.message);
     throw new Error(error.message);
   } else if (typeof error === 'string') {
     console.error('Error:', error);
+    if (alertCallback) alertCallback(error);
     throw new Error(error);
   } else {
     console.error('Unknown Error:', error);
+    if (alertCallback) alertCallback('An unknown error occurred');
     throw new Error('An unknown error occurred');
   }
 };

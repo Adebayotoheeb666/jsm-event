@@ -21,85 +21,97 @@ import { Checkbox } from "../ui/checkbox"
 import { useRouter } from "next/navigation"
 import { createEvent, updateEvent } from "@/lib/actions/event.actions"
 import { IEvent } from "@/lib/database/models/event.model"
+import toast from "react-hot-toast";
 
 
 type EventFormProps = {
   sub: string
   type: "Create" | "Update"
-  event?: IEvent,
+  event?: any,
   eventId?: string
 }
 
 const EventForm = ({ sub, type, event, eventId }: EventFormProps) => {
-  const [files, setFiles] = useState<File[]>([])
-  const initialValues = event && type === 'Update' 
-    ? { 
-      ...event, 
-      startDateTime: new Date(event.startDateTime), 
-      endDateTime: new Date(event.endDateTime) 
-    }
-    : eventDefaultValues;
+  const [files, setFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  const { startUpload } = useUploadThing('imageUploader')
+  const { startUpload } = useUploadThing("imageUploader");
+
+  const initialValues = event && type === "Update"
+    ? {
+        ...event,
+        startDateTime: new Date(event.startDateTime),
+        endDateTime: new Date(event.endDateTime),
+      }
+    : eventDefaultValues;
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
-    defaultValues: initialValues
-  })
- 
-  async function onSubmit(values: z.infer<typeof eventFormSchema>) {
-    let uploadedImageUrl = values.imageUrl;
+    defaultValues: initialValues,
+  });
 
-    if(files.length > 0) {
-      const uploadedImages = await startUpload(files)
+  const onSubmit = async (values: z.infer<typeof eventFormSchema>) => {
+    setIsSubmitting(true);
 
-      if(!uploadedImages) {
-        return
+    try {
+      let uploadedImageUrl = values.imageUrl;
+
+      if (files.length > 0) {
+        const uploadedImages = await startUpload(files);
+
+        if (!uploadedImages) {
+          toast.error("Image upload failed. Please try again.");
+          return;
+        }
+
+        uploadedImageUrl = uploadedImages[0].url;
       }
 
-      uploadedImageUrl = uploadedImages[0].url
-    }
+      if (type === "Create") {
+        if (!values.title || !values.categoryId || !values.startDateTime || !values.endDateTime) {
+          toast.error("Please fill out all required fields.");
+          return;
+        }
 
-    if(type === 'Create') {
-      try {
         const newEvent = await createEvent({
           event: { ...values, imageUrl: uploadedImageUrl },
-          sub,
-          path: '/profile'
-        })
+          sub, // Ensure `sub` is correctly passed
+          path: "/profile",
+        });
 
-        if(newEvent) {
+        if (newEvent) {
           form.reset();
-          router.push(`/events/${newEvent._id}`)
+          router.push(`/events/${newEvent._id}`);
+          toast.success("Event created successfully");
         }
-      } catch (error) {
-        console.log(error);
-      }
-    }
-
-    if(type === 'Update') {
-      if(!eventId) {
-        router.back()
-        return;
       }
 
-      try {
+      if (type === "Update") {
+        if (!eventId) {
+          toast.error("Event ID missing. Please provide a valid event ID.");
+          return;
+        }
+
         const updatedEvent = await updateEvent({
-          sub,
+          sub, // Ensure `sub` is correctly passed
           event: { ...values, imageUrl: uploadedImageUrl, _id: eventId },
-          path: `/events/${eventId}`
-        })
+          path: `/events/${eventId}`,
+        });
 
-        if(updatedEvent) {
+        if (updatedEvent) {
           form.reset();
-          router.push(`/events/${updatedEvent._id}`)
+          router.push(`/events/${updatedEvent._id}`);
+          toast.success("Event updated successfully");
         }
-      } catch (error) {
-        console.log(error);
       }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Form {...form}>
